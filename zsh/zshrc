@@ -1,0 +1,56 @@
+# General PATH configuration
+export PATH="$HOME/bin:$HOME/.local/bin:/usr/local/bin:/opt/homebrew/bin:/opt/homebrew/opt/openvpn/sbin:$HOME/Library/Android/sdk/platform-tools:$HOME/go/bin:$PATH"
+
+# Oh My Zsh installation path
+export ZSH="$HOME/.oh-my-zsh"
+source $ZSH/oh-my-zsh.sh
+
+# Starship prompt initialization
+export STARSHIP_CONFIG="$HOME/.config/starship/starship.toml"
+eval "$(starship init zsh)"
+
+# Shell enhancements
+source $(brew --prefix)/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh
+source $(brew --prefix)/share/zsh-autosuggestions/zsh-autosuggestions.zsh
+(( ${+ZSH_HIGHLIGHT_STYLES} )) && typeset -A ZSH_HIGHLIGHT_STYLES
+ZSH_HIGHLIGHT_STYLES[path]=none
+ZSH_HIGHLIGHT_STYLES[path_prefix]=none
+
+# Useful aliases
+alias pubip="curl -s ipinfo.io/json | jq"
+alias ls="lsd" # Requires the 'lsd' package installed
+
+# Functions
+
+## Reset DNS
+redns(){
+    echo "Resetting DNS to 1.1.1.1 & 1.0.0.1"
+    sudo dscacheutil -flushcache;sudo killall -HUP mDNSResponder;
+    networksetup -setdnsservers Wi-Fi 1.1.1.1 1.0.0.1;
+    ping -c 3 google.com;
+    echo "Done";   
+}
+
+# Function to set the current working directory as the project directory
+setworkspace() {
+    export workspace="$(pwd)"
+    echo "Workspace directory set to: $workspace"
+
+    # Determine the shell configuration file
+    if [ -n "$ZSH_VERSION" ]; then
+        shell_config="$HOME/.zshrc"
+    else
+        shell_config="$HOME/.bashrc"
+    fi
+
+    # Remove any existing line that exactly sets the $workspace variable
+    sed -i '' -e "\,^export workspace=,d" "$shell_config"
+
+    # Add the new workspace directory
+    echo "export workspace=\"$workspace\"" >> "$shell_config"
+}
+
+# CD to workspace
+cdw() {
+    cd "$workspace"
+}
